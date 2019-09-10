@@ -1,0 +1,63 @@
+version: '3'
+services:
+  rmariadb:
+    image: 'mariadb:latest'
+    environment:
+      - MYSQL_ROOT_PASSWORD=qwer1234
+      - MYSQL_USER=s_redmine
+      - MYSQL_PASSWORD=qwer1234
+      - MYSQL_DATABASE=s_redminedb      
+      - TZ=Asia/Seoul
+    command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - 'rmariadb_data:/var/lib/s_rmariadb/data'
+  tmariadb:
+    image: 'mariadb:latest'
+    environment:
+      - MYSQL_ROOT_PASSWORD=qwer1234
+      - MYSQL_USER=s_testlink
+      - MYSQL_PASSWORD=qwer1234
+      - MYSQL_DATABASE=s_testlinkdb      
+      - TZ=Asia/Seoul
+    command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - 'tmariadb_data:/var/lib/s_tmariadb/data'
+  redmine:
+    image: 'redmine:latest'
+    environment:
+      - REDMINE_DB_USERNAME=s_redmine
+      - REDMINE_DB_PASSWORD=qwer1234
+      - REDMINE_DB_NAME=s_redminedb
+      - REDMINE_DB_ENCODING=utf8
+    ports:
+      - '3000:3000'
+    volumes:
+      - 'redmine_data:/var/lib/s_redminedb/data'
+    depends_on:
+      - rmariadb     
+  testlink:
+    image: 'bitnami/testlink:latest'
+    environment:
+      - MARIADB_HOST=tmariadb
+      - MARIADB_PORT_NUMBER=3306            
+      - TESTLINK_USERNAME=admin
+      - TESTLINK_PASSWORD=qwer1234
+      - TESTLINK_DATABASE_NAME=s_testlinkdb
+      - TESTLINK_DATABASE_USER=s_testlink      
+      - TESTLINK_DATABASE_PASSWORD=qwer1234
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - 'testlink_data:/var/lib/s_testlinkdb/data'      
+    depends_on:
+      - tmariadb
+volumes:
+  rmariadb_data:
+    driver: local
+  tmariadb_data:
+    driver: local    
+  testlink_data:
+    driver: local
+  redmine_data:
+    driver: local
